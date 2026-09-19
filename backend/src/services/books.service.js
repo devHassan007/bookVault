@@ -10,12 +10,38 @@ async function createBook(userId, data) {
     return rows[0];
 }
 
-async function listBooks(userId) {
-    const { rows } = await pool.query(
-        'SELECT * FROM books WHERE user_id = $1 ORDER BY created_at DESC',
-        [userId]
-    );
-    return rows;
+async function listBooks(userId, { page = 1, limit = 20, status, genre, ratingMin, ratingMax, sort, q }) {
+    const conditions = ['user_id = $1'];
+    const values = [userId];
+    let i = 2;
+
+    if (status) { conditions.push(`status = $${i++}`); values.push(status); }
+    if (genre) { conditions.push(`genre = $${i++}`); values.push(genre); }
+    if (ratingMin) { conditions.push(`rating >= $${i++}`); values.push(ratingMin); }
+    if (ratingMax) { conditions.push(`rating <= $${i++}`); values.push(ratingMax); }
+    if (q) { conditions.push(`(title ILIKE $${i} OR author ILIKE $${i})`); values.push(`%${q}%`); i++; }
+
+    const allowedSort = { rating: 'rating', title: 'title', createdAt: 'created_at' };
+    let orderClause = 'created_at DESC';
+    if (sort) {
+        const desc = sort.startsWith('-');
+        const key = allowedSort[desc ? sort.slice(1) : sort];
+        if (key) orderClause = `${key} ${desc ? 'DESC' : 'ASC'}`;
+    }
+
+    const offset = (page - 1) * limit;
+    const where = conditions.join(' AND ');
+
+    const dataQuery = `SELECT * FROM books WHERE ${where} ORDER BY ${orderClause} LIMIT $${i} OFFSET $${i + 1}`;
+    const countQuery = `SELECT COUNT(*) FROM books WHERE ${where}`;
+
+    const [dataRes, countRes] = await Promise.all([
+        pool.query(dataQuery, [...values, limit, offset]),
+        pool.query(countQuery, values),
+    ]);
+
+    const total = parseInt(countRes.rows[0].count, 10);
+    return { data: dataRes.rows, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
 }
 
 async function getBookById(id) {

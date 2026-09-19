@@ -16,7 +16,8 @@
     "migrate:create": "dotenv -e .env -- node-pg-migrate create -m src/db/migrations --",
     "test": "dotenv -e .env.test -- jest --runInBand",
     "prepare": "husky",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "seed": "dotenv -e .env -- node scripts/seed.js"
   },
   "keywords": [],
   "author": "",

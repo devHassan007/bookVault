@@ -1,4 +1,6 @@
 const booksService = require('../services/books.service');
+const reviewsService = require('../services/reviews.service');
+
 
 async function create(req, res, next) {
     try {
@@ -9,12 +11,16 @@ async function create(req, res, next) {
 
 async function list(req, res, next) {
     try {
-        res.status(200).json(await booksService.listBooks(req.user.id));
+        const result = await booksService.listBooks(req.user.id, req.query);
+        res.status(200).json(result);
     } catch (err) { next(err); }
 }
 
-async function getOne(req, res) {
-    res.status(200).json(req.book); // loaded + ownership-checked by ownership.middleware.js
+async function getOne(req, res, next) {
+    try {
+        const { averageRating, reviewCount } = await reviewsService.getAverageRating(req.book.id);
+        res.status(200).json({ ...req.book, averageRating, reviewCount });
+    } catch (err) { next(err); }
 }
 
 async function patch(req, res, next) {
