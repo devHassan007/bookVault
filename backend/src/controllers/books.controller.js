@@ -1,5 +1,6 @@
 const booksService = require('../services/books.service');
 const reviewsService = require('../services/reviews.service');
+const { httpError } = require('../utils/httpError');
 
 
 async function create(req, res, next) {
@@ -26,7 +27,7 @@ async function getOne(req, res, next) {
 async function patch(req, res, next) {
     try {
         const book = await booksService.updateBookPartial(req.params.id, req.user.id, req.body);
-        if (!book) return res.status(404).json({ error: { message: 'Book not found' } });
+        if (!book) return next(httpError(404, 'Book not found', 'NOT_FOUND'));
         res.status(200).json(book);
     } catch (err) { next(err); }
 }
@@ -34,7 +35,7 @@ async function patch(req, res, next) {
 async function put(req, res, next) {
     try {
         const book = await booksService.putBook(req.params.id, req.user.id, req.body);
-        if (!book) return res.status(404).json({ error: { message: 'Book not found' } });
+        if (!book) return next(httpError(404, 'Book not found', 'NOT_FOUND'));
         res.status(200).json(book);
     } catch (err) { next(err); }
 }

@@ -1,10 +1,11 @@
 const { z } = require('zod');
+const { stripHtml } = require('../utils/sanitize');
 
 const createBookSchema = z.object({
-    title: z.string().min(1),
-    author: z.string().optional(),
+    title: z.string().min(1).transform(stripHtml), // required — safe to transform directly
+    author: z.string().optional().transform((val) => (val ? stripHtml(val) : val)), // optional — guard against undefined
     isbn: z.string().optional(),
-    genre: z.string().optional(),
+    genre: z.string().optional().transform((val) => (val ? stripHtml(val) : val)),
     status: z.enum(['want_to_read', 'reading', 'finished', 'abandoned']).optional(),
     totalPages: z.number().int().positive().optional(),
 });
@@ -20,6 +21,6 @@ const listBooksQuerySchema = z.object({
     ratingMax: z.coerce.number().int().min(1).max(5).optional(),
     sort: z.string().optional(),
     q: z.string().optional(),
-}).strict(); // unknown query params fail validation → 400
+}).strict();
 
 module.exports = { createBookSchema, updateBookSchema, listBooksQuerySchema };

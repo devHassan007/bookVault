@@ -1,4 +1,5 @@
 const reviewsService = require('../services/reviews.service');
+const { httpError } = require('../utils/httpError');
 
 async function create(req, res, next) {
     try {
@@ -17,7 +18,7 @@ async function getOne(req, res, next) {
     try {
         const review = await reviewsService.getReviewById(req.params.id);
         if (!review || review.book_id !== req.params.bookId) {
-            return res.status(404).json({ error: { message: 'Review not found' } });
+            return next(httpError(404, 'Review not found', 'NOT_FOUND'));
         }
         res.status(200).json(review);
     } catch (err) { next(err); }
@@ -26,7 +27,7 @@ async function getOne(req, res, next) {
 async function patch(req, res, next) {
     try {
         const review = await reviewsService.updateReview(req.params.id, req.user.id, req.body);
-        if (!review) return res.status(404).json({ error: { message: 'Review not found' } });
+        if (!review) return next(httpError(404, 'Review not found', 'NOT_FOUND'));
         res.status(200).json(review);
     } catch (err) { next(err); }
 }

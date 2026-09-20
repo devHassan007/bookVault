@@ -1,10 +1,11 @@
 const shelvesService = require('../services/shelves.service');
+const { httpError } = require('../utils/httpError');
 
 async function create(req, res, next) {
     try {
         res.status(201).json(await shelvesService.createShelf(req.user.id, req.body.name));
     } catch (err) {
-        if (err.code === '23505') return res.status(409).json({ error: { message: 'You already have a shelf with this name' } });
+        if (err.code === '23505') return next(httpError(409, 'You already have a shelf with this name', 'CONFLICT'));
         next(err);
     }
 }
@@ -28,7 +29,7 @@ async function patch(req, res, next) {
         if (!shelf) return res.status(404).json({ error: { message: 'Shelf not found' } });
         res.status(200).json(shelf);
     } catch (err) {
-        if (err.code === '23505') return res.status(409).json({ error: { message: 'You already have a shelf with this name' } });
+        if (err.code === '23505') return next(httpError(409, 'You already have a shelf with this name', 'CONFLICT'));
         next(err);
     }
 }

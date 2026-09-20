@@ -14,4 +14,5 @@ module.exports = {
     port: process.env.PORT || 4000,
     nodeEnv: process.env.NODE_ENV || 'development',
     devUserId: process.env.DEV_USER_ID || '2b171f7b-3b8c-488d-bc51-bd934e22e0a2',
+    allowedOrigin: process.env.ALLOWED_ORIGIN || '*',
 };
